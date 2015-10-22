@@ -1,0 +1,24 @@
+00400000-00401000 r-xp 00000000 00:2c 75506392                           /usagers/relat/Documents/INF2610_Lab3/segfault/segfault
+00601000-00602000 r--p 00001000 00:2c 75506392                           /usagers/relat/Documents/INF2610_Lab3/segfault/segfault
+00602000-00603000 rw-p 00002000 00:2c 75506392                           /usagers/relat/Documents/INF2610_Lab3/segfault/segfault
+02220000-02241000 rw-p 00000000 00:00 0                                  [heap]
+7f40606f4000-7f40608ab000 r-xp 00000000 08:04 2795971                    /usr/lib64/libc-2.21.so
+7f40608ab000-7f4060aaa000 ---p 001b7000 08:04 2795971                    /usr/lib64/libc-2.21.so
+7f4060aaa000-7f4060aae000 r--p 001b6000 08:04 2795971                    /usr/lib64/libc-2.21.so
+7f4060aae000-7f4060ab0000 rw-p 001ba000 08:04 2795971                    /usr/lib64/libc-2.21.so
+7f4060ab0000-7f4060ab4000 rw-p 00000000 00:00 0 
+7f4060ab4000-7f4060acb000 r-xp 00000000 08:04 2795241                    /usr/lib64/libpthread-2.21.so
+7f4060acb000-7f4060cca000 ---p 00017000 08:04 2795241                    /usr/lib64/libpthread-2.21.so
+7f4060cca000-7f4060ccb000 r--p 00016000 08:04 2795241                    /usr/lib64/libpthread-2.21.so
+7f4060ccb000-7f4060ccc000 rw-p 00017000 08:04 2795241                    /usr/lib64/libpthread-2.21.so
+7f4060ccc000-7f4060cd0000 rw-p 00000000 00:00 0 
+7f4060cd0000-7f4060cf1000 r-xp 00000000 08:04 2791132                    /usr/lib64/ld-2.21.so
+7f4060e97000-7f4060e9a000 rw-p 00000000 00:00 0 
+7f4060eef000-7f4060ef0000 rw-p 00000000 00:00 0 
+7f4060ef0000-7f4060ef1000 r--p 00020000 08:04 2791132                    /usr/lib64/ld-2.21.so
+7f4060ef1000-7f4060ef2000 rw-p 00021000 08:04 2791132                    /usr/lib64/ld-2.21.so
+7f4060ef2000-7f4060ef3000 rw-p 00000000 00:00 0 
+7ffd61445000-7ffd61466000 rw-p 00000000 00:00 0                          [stack]
+7ffd61568000-7ffd6156a000 r--p 00000000 00:00 0                          [vvar]
+7ffd6156a000-7ffd6156c000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]

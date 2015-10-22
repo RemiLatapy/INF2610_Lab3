@@ -43,28 +43,28 @@ static void
 parse_opts(int argc, char **argv, struct vars *vars) {
     int opt;
     int i, j;
-
+    
     struct option options[] = { { "help", 0, 0, 'h' }, { "dry-run", 0, 0, 'n' },
-            { "verbose", 0, 0, 'v' }, { 0, 0, 0, 0 } };
+    { "verbose", 0, 0, 'v' }, { 0, 0, 0, 0 } };
     int idx;
-
+    
     while ((opt = getopt_long(argc, argv, "hnv", options, &idx)) != -1) {
         switch (opt) {
-        case 'n':
-            vars->dry_run = 1;
-            break;
-        case 'v':
-            vars->verbose = 1;
-            break;
-        case 'h':
-            usage();
-            break;
-        default:
-            usage();
-            break;
+            case 'n':
+                vars->dry_run = 1;
+                break;
+            case 'v':
+                vars->verbose = 1;
+                break;
+            case 'h':
+                usage();
+                break;
+            default:
+                usage();
+                break;
         }
     }
-
+    
     if (optind < argc) {
         vars->nr_args = argc - optind;
         vars->args = calloc(vars->nr_args, sizeof(char *));
@@ -73,10 +73,10 @@ parse_opts(int argc, char **argv, struct vars *vars) {
             vars->args[i] = strdup(argv[j]);
         }
     }
-
+    
     if (vars->prog == NULL)
         usage();
-
+    
     if (vars->verbose) {
         printf("vars->prog %s\n", vars->prog);
         for (i = 0; i < vars->nr_args; i++) {
@@ -103,24 +103,29 @@ main(int argc, char **argv) {
     int ret;
     struct vars *vars = calloc(1, sizeof(struct vars));
     parse_opts(argc, argv, vars);
-
+    
     ret = fork();
     switch (ret) {
-    case -1:
-        printf("Fork error\n");
-        break;
-    case 0:
-        /*
-         * TODO: faire un appel à personality(),
-         * puis exécuter la commande passée en argument (voir vars->prog et vars->args).
-         * ATTENTION: bien s'assurer de traiter l'argument vars->dry_run
-         */
-        break;
-    default:
-        wait(NULL);
-        break;
+        case -1:
+            printf("Fork error\n");
+            break;
+        case 0:
+            /*
+             * TODO: faire un appel à personality(),
+             * puis exécuter la commande passée en argument (voir vars->prog et vars->args).
+             * ATTENTION: bien s'assurer de traiter l'argument vars->dry_run
+             */
+            if(vars->dry_run != 1) {
+                printf("%x\n", personality(ADDR_NO_RANDOMIZE));
+            }
+            execlp(vars->prog, vars->prog, vars->args, NULL);
+            
+            break;
+        default:
+            wait(NULL);
+            break;
     }
-
+    
     free_vars(vars);
     printf("Done\n");
     return 0;

@@ -45,17 +45,19 @@ void crash_handler(int signal) {
 
 void scan_memory(void *data, int direction) {
     int i; (void) i;
-    volatile char bidon = 0; (void) bidon;
-    char *start = (char *) data; (void) start;
-
+    volatile char bidon = 0; 
+    (void) bidon;
+    char *start = (char *) data; 
+    (void) start;
+    
     if (direction != -1 && direction != 1) {
         printf("error: direction must be 1 or -1\n");
         return;
     }
     printf("direction=%d\n", direction);
-
+    
     /* TODO: Lire, octet par octet, jusqu'à la réception du signal SIGSEGV.
-     *
+     * 
      * Dans une boucle:
      * 1 - mettre à jour la variable offset
      * 2 - calculer l'adresse à accéder dans addr
@@ -65,27 +67,39 @@ void scan_memory(void *data, int direction) {
      * Lecture seulement de la mémoire. Si le balayage écrase de la mémoire
      * utile au programme, alors il se peut que son comportement soit modifié.
      */
+    
+    offset = 0;
+    while(1) {
+        offset = offset + direction;
+        addr = start + offset;
+        __sync_synchronize();
+        bidon = *(addr);
+    }
+    
     printf("D'oh! No segfault!\n");
     return;
 }
 
 int main(int argc, char **argv) {
-    int dir = 0; (void) dir;
+    int dir = 0;
+    (void) dir;
     long *bidon = malloc(sizeof(long));
     *bidon = 0xCAFEBABECAFEBABE;
-
+    
     if (argc < 2) {
         printf("Specifier la direction de balayage: 1 ou -1\n");
         return -1;
     }
     dir = atoi(argv[1]);
-
+    
     // TODO: enregister fonction crash_handler au signal SIGSEGV
-
+    signal(SIGSEGV, crash_handler);
+    
     save_maps();
-
+    
     // TODO: appel à scan_memory()
-
+    scan_memory(bidon, dir);
+    
     printf("done\n");
     return 0;
 }
