@@ -19,11 +19,14 @@ void save_page(char *fname, void *ptr) {
     (void) ptr;
     /*
      * TODO:
-     * 1 - calculer l'adresse du début de la page
+     * 1 - calculer l'adresse du début de la page ** done
      * 2 - ouvrir le fichier de destination
      * 3 - écrire la page dans le fichier
      * 4 - fermer le fichier
      */
+    
+    int startAddr = ptr-((int)ptr%getpagesize());
+    
     return;
 }
 
@@ -56,5 +59,6 @@ int main(int argc, char **argv) {
 
     save_page("beef.page", (void *)beef1);
     save_page("cafe.page", (void *)&cafe1);
+        
     return 0;
 }
