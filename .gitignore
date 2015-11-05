@@ -9,3 +9,5 @@ libdummy.la
 pagedump/beef.page
 pagedump/cafe.page
 pagedump/pagedump
+pagedump/readable.beef.page
+pagedump/readable.cafe.page

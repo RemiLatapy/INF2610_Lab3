@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
+
 
 /*
  * Savegarder la page contenant ptr dans le fichier fname
@@ -24,15 +26,30 @@ void save_page(char *fname, void *ptr) {
      * 3 - écrire la page dans le fichier
      * 4 - fermer le fichier
      */
-               
-    // use intptr_t to avoid transtypage warning
-    
+         
     int *startAddr = ptr-((intptr_t)ptr%getpagesize());
+
+    // hex output
     FILE *dest = fopen(fname, "w");
-    for(int *i = startAddr; i < startAddr+(getpagesize()/sizeof(int)); i++) {
-        fprintf(dest, "0x%8.8X\t:\t0x%8.8X\n", (unsigned int)(intptr_t)i, *i); // double cast to use %X
-    }
+    
+    fwrite(startAddr, 1 , getpagesize() , dest);
+    
     fclose(dest);
+    
+    
+    
+    // txt output
+    char str[80] = "readable.";
+    strcat(str,fname);
+
+    FILE *destReadable = fopen(str, "w");
+    
+    for(int *i = startAddr; i < startAddr+(getpagesize()/sizeof(int)); i++) {
+        fprintf(destReadable, "0x%8.8X\t:\t0x%8.8X\n", (unsigned int)(intptr_t)i, *i); // double cast to use %X
+    }
+    
+    fclose(destReadable);
+
 
     return;
 }
