@@ -5,3 +5,7 @@
 libs/*
 ./so_locations
 libdummy.la
+*.~lock.*
+pagedump/beef.page
+pagedump/cafe.page
+pagedump/pagedump

@@ -24,9 +24,13 @@ void save_page(char *fname, void *ptr) {
      * 3 - écrire la page dans le fichier
      * 4 - fermer le fichier
      */
-    
-    int startAddr = ptr-((int)ptr%getpagesize());
-    
+            
+    int *startAddr = ptr-((unsigned int)ptr%getpagesize());
+    FILE *dest = fopen(fname, "w");
+    for(int *i = startAddr; i < startAddr+(getpagesize()/sizeof(int)); i++) {
+        fprintf(dest, "0x%08.8X\t:\t0x%08.8X\n", i, *i);
+    }
+    fclose(dest);
     return;
 }
 
