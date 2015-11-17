@@ -437,7 +437,7 @@ Copyright (C) 2012 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
-ac_pwd='/usagers/relat/Téléchargements/inf2610-lab3-2.2'
+ac_pwd='/usagers/relat/Documents/INF2610_Lab3'
 srcdir='.'
 INSTALL='/usr/bin/install -c'
 MKDIR_P='/usr/bin/mkdir -p'
@@ -650,7 +650,7 @@ hardcode_minus_L='no'
 hardcode_shlibpath_var='unsupported'
 hardcode_automatic='no'
 inherit_rpath='no'
-link_all_deplibs='no'
+link_all_deplibs='unknown'
 always_export_symbols='no'
 export_symbols_cmds='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
 exclude_expsyms='_GLOBAL_OFFSET_TABLE_|_GLOBAL__F[ID]_.*'
@@ -675,7 +675,7 @@ finish_cmds='PATH="\$PATH:/sbin" ldconfig -n $libdir'
 finish_eval=''
 hardcode_into_libs='yes'
 sys_lib_search_path_spec='/usr/lib/gcc/x86_64-redhat-linux/5.1.1 /usr/lib64 /lib64 '
-sys_lib_dlsearch_path_spec='/lib /usr/lib /usr/lib64/R/lib /usr/lib64/atlas /usr/lib64/bind99 /usr/lib64/codeblocks/wxContribItems /usr/lib64/dyninst /usr/lib64/iscsi /usr/lib64/llvm include /usr/local/etc/ld.so.conf /usr/lib64/mysql /usr/lib64/nx /usr/lib64/nx/X11 /usr/lib64/octave/3.8.2 /usr/lib64/OGRE /usr/lib64/qt-3.3/lib /usr/lib64/tcl8.6 /usr/lib64/vtk '
+sys_lib_dlsearch_path_spec='/lib64 /usr/lib64 /lib /usr/lib /usr/lib64/R/lib /usr/lib64/atlas /usr/lib64/bind99 /usr/lib64/codeblocks/wxContribItems /usr/lib64/dyninst /usr/lib64/iscsi /usr/lib64/llvm include /usr/local/etc/ld.so.conf /usr/lib64/mysql /usr/lib64/nx /usr/lib64/nx/X11 /usr/lib64/octave/3.8.2 /usr/lib64/OGRE /usr/lib64/qt-3.3/lib /usr/lib64/tcl8.6 /usr/lib64/vtk '
 hardcode_action='immediate'
 enable_dlopen='unknown'
 enable_dlopen_self='unknown'
@@ -721,7 +721,7 @@ hardcode_minus_L_CXX='no'
 hardcode_shlibpath_var_CXX='unsupported'
 hardcode_automatic_CXX='no'
 inherit_rpath_CXX='no'
-link_all_deplibs_CXX='no'
+link_all_deplibs_CXX='unknown'
 always_export_symbols_CXX='no'
 export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
 exclude_expsyms_CXX='_GLOBAL_OFFSET_TABLE_|_GLOBAL__F[ID]_.*'
@@ -948,12 +948,12 @@ S["mkdir_p"]="$(MKDIR_P)"
 S["MKDIR_P"]="/usr/bin/mkdir -p"
 S["INSTALL_STRIP_PROGRAM"]="$(install_sh) -c -s"
 S["STRIP"]="strip"
-S["install_sh"]="${SHELL} /usagers/relat/Téléchargements/inf2610-lab3-2.2/install-sh"
-S["MAKEINFO"]="${SHELL} /usagers/relat/Téléchargements/inf2610-lab3-2.2/missing makeinfo"
-S["AUTOHEADER"]="${SHELL} /usagers/relat/Téléchargements/inf2610-lab3-2.2/missing autoheader"
-S["AUTOMAKE"]="${SHELL} /usagers/relat/Téléchargements/inf2610-lab3-2.2/missing automake-1.14"
-S["AUTOCONF"]="${SHELL} /usagers/relat/Téléchargements/inf2610-lab3-2.2/missing autoconf"
-S["ACLOCAL"]="${SHELL} /usagers/relat/Téléchargements/inf2610-lab3-2.2/missing aclocal-1.14"
+S["install_sh"]="${SHELL} /usagers/relat/Documents/INF2610_Lab3/install-sh"
+S["MAKEINFO"]="${SHELL} /usagers/relat/Documents/INF2610_Lab3/missing makeinfo"
+S["AUTOHEADER"]="${SHELL} /usagers/relat/Documents/INF2610_Lab3/missing autoheader"
+S["AUTOMAKE"]="${SHELL} /usagers/relat/Documents/INF2610_Lab3/missing automake-1.15"
+S["AUTOCONF"]="${SHELL} /usagers/relat/Documents/INF2610_Lab3/missing autoconf"
+S["ACLOCAL"]="${SHELL} /usagers/relat/Documents/INF2610_Lab3/missing aclocal-1.15"
 S["VERSION"]="2.2"
 S["PACKAGE"]="inf2610-lab3"
 S["CYGPATH_W"]="echo"

@@ -1,13 +1,19 @@
+#!/usr/bin/env python3
+
 import os
-from os.path import join, dirname, abspath
 import sys
+from babeltrace import TraceCollection, CTFScope
+import pprint
+import shutil
+
+from os.path import join, dirname, abspath
 import string
 import subprocess
 from optparse import OptionParser
 
 orig_pwd = abspath(os.path.curdir)
 top_srcdir = dirname(dirname(abspath(sys.argv[0])))
-trace_home = os.environ.get("LTTNG_TRACE_HOME", orig_pwd)
+trace_home = os.environ.get("LTTNG_TRACE_HOME", os.path.join(orig_pwd, "traces"))
 
 chunk = {
     "byte": 1,
@@ -27,11 +33,111 @@ experiences = {
         "block-size": "huge",
         "block-count": 100,
         "fill": True },
+    "stack_fill_huge": {
+        "where": "stack",
+        "block-size": "huge",
+        "block-count": 5,
+        "fill": True },
+    "stack_fill_word_over": {
+        "where": "stack",
+        "block-size": "word",
+        "block-count": 40960,
+        "fill": True },
 }
+
+gnuplot_template = \
+"""set terminal pngcairo size 640,480 enhanced font 'Verdana,10'
+set output 'pid_%(pid)d.png'
+set title "Memory analysis %(name)s"
+set xlabel "time (ns)"
+set ylabel "size (byte)"
+# set key outside
+plot "pid_%(pid)d.data" using 1:2 with lines title "heap", "pid_%(pid)d.data" using 1:3 with lines title "stack", "pid_%(pid)d.data" using 1:4 with lines title "kmem"
+"""
+
+def load_traces(base):
+    traces = TraceCollection()
+    for root, dirs, files in os.walk(base):
+        for f in files:
+            if f == "metadata":
+                ret = traces.add_trace(root, "ctf")
+                if ret is None:
+                    raise IOError("Error adding trace %s" % root)
+
+    return traces
+
+def process_trace(base, name, output):
+    traces = load_traces(base)
+    counts = {}
+    state = {} # (pid,type,value)
+    data = {} # (pid, file)
+    start = None
+    ctx = CTFScope.STREAM_EVENT_CONTEXT
+    for event in traces.events:
+
+        # prepare
+        if not start:
+            start = event.timestamp
+        if not event.name in counts:
+            counts[event.name] = 0
+        counts[event.name] += 1
+
+        pid = event.field_with_scope("vpid", ctx)
+        if pid is None:
+            pid = event.field_with_scope("pid", ctx)
+            if pid is None:
+                raise Exception("missing pid/vpid context")
+        if not pid in state:
+            state[pid] = {'heap': 0, 'stack': 0, 'tos': None, 'kmem': 0, 'ptrs': {}}
+        stx = state[pid]
+
+        # process event
+
+        if event.name == 'lttng_ust_libc:malloc':
+            sz = event['size']
+            stx['heap'] += sz
+            stx['ptrs'][event['ptr']] = sz
+        elif event.name == 'lttng_ust_libc:calloc':
+            sz = event['nmemb'] * event['size']
+            stx['heap'] += sz
+            stx['ptrs'][event['ptr']] = sz
+        elif event.name == 'lttng_ust_libc:free':
+            sz = stx['ptrs'].pop(event['ptr'], 0)
+            stx['heap'] -= sz
+        elif event.name == 'stack:entry':
+            if stx['tos'] is None:
+                stx['tos'] = event['rsp']
+            stx['stack'] = abs(event['rsp'] - stx['tos'])
+        elif event.name == 'kmem_mm_page_alloc':
+            stx['kmem'] += 4096
+        elif event.name == 'kmem_mm_page_free':
+            stx['kmem'] -= 4096
+
+        # output
+        if stx['heap'] > 0 and stx['stack'] > 0 and stx['kmem'] > 0:
+            if pid not in data:
+                out = open(os.path.join(output, 'pid_%d.data' % pid), 'w')
+                out.write("ts heap stack kmem\n")
+                data[pid] = out
+
+            ts = event.timestamp - start
+            data[pid].write("%d %d %d %d\n" % (ts, stx['heap'], stx['stack'], stx['kmem']))
+
+    # terminate
+    old_dir = abspath(os.path.curdir)
+    os.chdir(output)
+    for pid, f in data.items():
+        f.close()
+        gnuplot_file = "pid_%d.gplot" % pid
+        gnuplot = open(os.path.join(output, gnuplot_file), 'w')
+        gnuplot.write(gnuplot_template % {'pid': pid, 'name': name})
+        gnuplot.close()
+        subprocess.call(["gnuplot", gnuplot_file])
+    os.chdir(old_dir)
 
 # let's fix max-mem to be always 1000 * chunk size
 def build_drmem_cmd(options, name, exp):
-    cmd =  [ "lttng-simple", "-c", "-u", "-k" ]
+    cmd =  [ "lttng-simple", "-c", "-u", "-k", "-o", trace_home ]
     cmd += [ "-e", "mm" ]
     cmd += [ "--enable-libc-wrapper" ]
     cmd += [ "--stateless", "--name", name, "--" ]
@@ -54,17 +160,6 @@ def build_drmem_cmd(options, name, exp):
         cmd += [ "--trim", str(trim) ]
     return cmd
 
-def build_kmem_cmd(name, output_dir):
-    trace_dir = join(trace_home, name + "-k-u")
-    jar_file = join(top_srcdir, "scripts", "lttng-kmem.jar")
-    cmd = [ "java", "-jar", jar_file ]
-    cmd += [ "--output", output_dir, trace_dir ]
-    return cmd
-
-def build_gnuplot_cmd(name, outputdir):
-    cmd = [ "gnuplot", "data.gnuplot" ]
-    return cmd;
-
 def run_cmd(cmd):
     ret = subprocess.call(cmd)
     if ret != 0:
@@ -72,20 +167,19 @@ def run_cmd(cmd):
 
 def do_one(options, name, exp):
     output_dir = join(top_srcdir, "results", name)
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.makedirs(output_dir)
+
+    # make trace
     cmd1 = build_drmem_cmd(options, name, exp)
-    cmd2 = build_kmem_cmd(name, output_dir)
-    cmd3 = build_gnuplot_cmd(name, output_dir)
-    
     print(cmd1)
     run_cmd(cmd1)
-    
-    print(cmd2)
-    run_cmd(cmd2)
-    
-    print(cmd3)
-    os.chdir(output_dir)
-    run_cmd(cmd3)
-    os.chdir(orig_pwd)
+
+    # analysis
+    base = os.path.join(trace_home, name + "-k-u")
+    process_trace(base, name, output_dir)
+
 
 def which(name, flags=os.X_OK):
     result = []
@@ -110,10 +204,11 @@ Execute drmem experiments.
 """
 
 if __name__=="__main__":
+    drmem_dir = os.path.join(top_srcdir, "drmem")
     parser = OptionParser(usage=usage)
     parser.add_option("--dry-run", dest="dry_run", default=False, action="store_true", help="display commands and do not execute them")
     parser.add_option("--list", dest="list", default=False, action="store_true", help="display available experiments")
-    parser.add_option("--drmem-dir", dest="drmem_dir", default=join(top_srcdir, "drmem"), help="drmem directory")
+    parser.add_option("--drmem-dir", dest="drmem_dir", default=drmem_dir, help="drmem directory")
     
     (options, args) = parser.parse_args()
     if (options.list):
@@ -121,29 +216,17 @@ if __name__=="__main__":
         for name, opts in experiences.items():
             print(name)
         sys.exit(0)
-    
-    if (options.dry_run):
-        for name, opts in experiences.items():
-            output_dir = join(top_srcdir, "results", name)
-            print(name)
-            cmd = build_drmem_cmd(options, name, opts)
-            print("tracing:  " + string.join(cmd, " "))
-            cmd = build_kmem_cmd(name, output_dir)
-            print("analysis: " + string.join(cmd, " "))
-            cmd = build_gnuplot_cmd(name, output_dir)
-            print("ploting:  " + string.join(cmd, " "))
-        sys.exit(0)
-    
+
     print(options)
     print(args)
     # validate experiences
     for arg in args:
-        if not experiences.has_key(arg):
+        if not arg in experiences : #experiences.has_key(arg):
             raise Exception("unknown experience %s" % (arg))
     
     # check for required tools
     ok = True
-    exe_list = [ "java", "lttng-simple", "lttng", "gnuplot" ]
+    exe_list = [ "lttng-simple", "lttng", "gnuplot" ]
     for exe in exe_list:
         res = which(exe)
         if len(res) == 0:
@@ -152,14 +235,17 @@ if __name__=="__main__":
     if not os.path.exists(options.drmem_dir):
         print("drmem not found")
         ok = False
-    if not os.path.exists(join(top_srcdir, "scripts", "lttng-kmem.jar")):
-        print("lttng-kmem.jar not found in scripts directory")
-        ok = False
     if not ok:
         print("Can't run analysis, verify the setup")
         sys.exit(1)
-            
-    
+
+    # put the lttng-simple profile in the home directory
+    profile_dir = os.path.join(os.environ.get("HOME"), ".workload-kit")
+    if not os.path.exists(profile_dir):
+        os.makedirs(profile_dir)
+    shutil.copy(os.path.join(orig_pwd, "mm.list"),
+                os.path.join(profile_dir, "mm.list"))
+
     try:
         if len(args) == 0:
             # run all experiences

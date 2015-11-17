@@ -1,0 +1,7 @@
+set terminal pngcairo size 640,480 enhanced font 'Verdana,10'
+set output 'pid_28550.png'
+set title "Memory analysis stack_fill_word_over"
+set xlabel "time (ns)"
+set ylabel "size (byte)"
+# set key outside
+plot "pid_28550.data" using 1:2 with lines title "heap", "pid_28550.data" using 1:3 with lines title "stack", "pid_28550.data" using 1:4 with lines title "kmem"
